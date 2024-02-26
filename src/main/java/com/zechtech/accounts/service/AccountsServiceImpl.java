@@ -14,8 +14,7 @@ import com.zechtech.accounts.repository.CustomerRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.lang.module.ResolutionException;
-import java.time.LocalDateTime;
+
 import java.util.Optional;
 import java.util.Random;
 
@@ -32,8 +31,6 @@ Optional<Customer> optionalCustomer=customerRepository.findByMobileNumber(custom
 if(optionalCustomer.isPresent()){
     throw new CustomerAlreadyExistsExeption("Customer already registered with the given Number"+ customerDto.getMobileNumber());
 }
-customer.setCreatedAt(LocalDateTime.now());
-customer.setCreatedBy("Anonymous");
 Customer savedCustomer=customerRepository.save(customer);
 accountsRepository.save(createNewAccount(savedCustomer));
     }
@@ -48,8 +45,7 @@ accountsRepository.save(createNewAccount(savedCustomer));
     newAccount.setAccountNumber(randomAccNumber);
 newAccount.setAccountType(AccountsConstants.SAVINGS);
 newAccount.setBranchAddress(AccountsConstants.ADDRESS);
-        newAccount.setCreatedAt(LocalDateTime.now());
-        newAccount.setCreatedBy("Anonymous");
+
 return newAccount;
 
     }
@@ -75,8 +71,8 @@ return newAccount;
                   .orElseThrow(()
                   -> new ResourceNotFoundException("Account","AccountNumber", accountsDto.getAccountNumber().toString()));
 
-accounts.setAccountType(accountsDto.getAccountType()!=null ? accountsDto.getAccountType():accounts.getAccountType());
-accounts.setBranchAddress(accountsDto.getBranchAddress()!=null ? accountsDto.getBranchAddress():accounts.getBranchAddress());
+accountsDto.setAccountType(accountsDto.getAccountType()!=null ? accountsDto.getAccountType():accounts.getAccountType());
+accountsDto.setBranchAddress(accountsDto.getBranchAddress()!=null ? accountsDto.getBranchAddress():accounts.getBranchAddress());
 
         AccountsMapper.mapToAccounts(accountsDto, accounts);
         accounts=accountsRepository.save(accounts);
@@ -84,9 +80,9 @@ accounts.setBranchAddress(accountsDto.getBranchAddress()!=null ? accountsDto.get
         Long customerId= accounts.getCustomerId();
         Customer customer= customerRepository.findById(customerId).orElseThrow(
                 ()->new ResourceNotFoundException("Customer","CustomerID", customerId.toString()));
-        customer.setMobileNumber(customerDto.getMobileNumber()!=null?customerDto.getMobileNumber():customer.getMobileNumber());
-        customer.setName(customerDto.getName()!=null?customerDto.getName():customer.getName());
-        customer.setEmail(customerDto.getEmail()!=null?customerDto.getEmail():customer.getEmail());
+        customerDto.setMobileNumber(customerDto.getMobileNumber()!=null?customerDto.getMobileNumber():customer.getMobileNumber());
+        customerDto.setName(customerDto.getName()!=null?customerDto.getName():customer.getName());
+        customerDto.setEmail(customerDto.getEmail()!=null?customerDto.getEmail():customer.getEmail());
 
 
         CustomerMapper.mapToCustomer(customerDto, customer);
@@ -100,12 +96,11 @@ accounts.setBranchAddress(accountsDto.getBranchAddress()!=null ? accountsDto.get
 
     @Override
     public boolean deleteAccount(String mobileNumber) {
-
-        Customer customer= customerRepository.findByMobileNumber(mobileNumber).orElseThrow(
-                ()->new ResourceNotFoundException("Customer", "mobileNumber", mobileNumber));
+        Customer customer = customerRepository.findByMobileNumber(mobileNumber).orElseThrow(
+                () -> new ResourceNotFoundException("Customer", "mobileNumber", mobileNumber)
+        );
         accountsRepository.deleteByCustomerId(customer.getCustomerId());
         customerRepository.deleteById(customer.getCustomerId());
-
         return true;
     }
 }
